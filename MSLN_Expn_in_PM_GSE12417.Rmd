@@ -1,0 +1,199 @@
+---
+title: "MSLN Expression in Adult AML"
+author: "Jenny Smith"
+date: "March 31, 2017"
+output: pdf_document
+---
+
+
+```{r setup}
+library(knitr)
+knitr::opts_chunk$set(tidy.opts=list(width.cutoff=50),tidy=TRUE, fig.align='center')
+knitr::opts_knit$set(root.dir = 'H:/RNA_seq_Analysis/2017.03.31_MSLN_Expression_inAdultAML/')
+```
+
+
+```{r message = FALSE, warning=FALSE}
+library(RColorBrewer)
+library(colorspace)
+library(stringr)
+library(Biobase)
+library(GEOquery)
+library(dplyr)
+library(magrittr)
+library(ggplot2)
+getwd()
+```
+
+
+#GSE12417 CN-AML Cohort
+```{r}
+GSE12417 <- get(load("GSE12417_CN-AML_U133Combined_withGeneSymbol_ExpnData.RData"))
+```
+
+```{r}
+dim(GSE12417)
+```
+
+
+```{r}
+head(GSE12417[,1:5])
+```
+
+```{r}
+sapply(GSE12417[,1:10], class)
+```
+
+
+```{r}
+MSLN <- GSE12417[which(grepl("MSLN", GSE12417$Gene_Symbol)), ]
+
+MSLN[,1:5]
+```
+
+```{r}
+MSLN$probe_ID <- as.character(MSLN$probe_ID)
+```
+
+```{r}
+MSLN$probe_ID
+```
+
+```{r}
+sapply(MSLN[,1:10], class)
+```
+
+
+```{r}
+
+MSLN[,which(! grepl("[[:alpha:]]", MSLN[1,]))]
+
+```
+
+
+
+```{r}
+#remove character vectors (gene name and probe ID) before transposing. 
+#avoids turning numeric into characters
+MSLN_df <- MSLN[,3:ncol(MSLN)]
+MSLN_df <- data.frame(t(MSLN_df))
+
+#Make a column for patient IDs
+MSLN_df <- cbind(rownames(MSLN_df), MSLN_df)
+colnames(MSLN_df) <- c("Patient_ID", "U133_Microarray_Expn")
+
+#Order and round the expression values
+MSLN_df <- MSLN_df[order(MSLN_df$U133_Microarray_Expn),]
+MSLN_df$U133_Microarray_Expn <- round(MSLN_df$U133_Microarray_Expn, digits = 4)
+```
+
+```{r}
+head(MSLN_df)
+```
+
+
+```{r}
+sapply(MSLN_df, class)
+```
+
+```{r}
+# write.csv(MSLN_df, "GSE12417_CN-AML_U133Combined_MSLN_ExpnData.csv")
+```
+
+```{r}
+ggplot(data = MSLN_df, aes(x=reorder(Patient_ID,U133_Microarray_Expn), y=U133_Microarray_Expn)) +
+  geom_bar(stat ="identity", color = "black", fill="blue") + 
+  theme(plot.title = element_text(hjust = 0.5, size = 18), 
+        panel.background = element_rect(fill="white"), 
+        panel.grid.major = element_line(colour = "gray"), 
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 45,hjust = 1, vjust = 0.5, size = 3), 
+        axis.text.y = element_text(size = 14),
+        axis.title = element_text(size = 15)) + 
+  labs(y="Log2 GE", x="Patient", title="Mesothelin Expression in GSE12417 CN-AML Cohort 1")
+
+```
+
+
+
+```{r}
+boxplot(MSLN_df$U133_Microarray_Expn, color="blue", ylim=c(5,7.5), outline=FALSE ) #verrrry small 
+```
+
+
+
+#GSE12417 Second Cohort
+
+```{r}
+GPL570 <- get(load("GSE12417_CN-AML_GPL570_withGenSymbol_ExpnData.RData"))
+```
+
+```{r}
+dim(GPL570)
+```
+
+```{r}
+sapply(GPL570[,1:10], class)
+```
+
+
+```{r}
+MSLN <- GPL570[which(grepl("MSLN", GPL570$Gene.Symbol)), ]
+
+MSLN[,1:5]
+```
+
+
+```{r}
+#remove character vectors (gene name and probe ID) before transposing. 
+#avoids turning numeric into characters
+MSLN_df <- MSLN[,3:ncol(MSLN)]
+MSLN_df <- data.frame(t(MSLN_df))
+
+#Make a column for patient IDs
+MSLN_df <- cbind(rownames(MSLN_df), MSLN_df)
+colnames(MSLN_df) <- c("Patient_ID", "U133_Microarray_Expn")
+
+#Order and round the expression values
+MSLN_df <- MSLN_df[order(MSLN_df$U133_Microarray_Expn),]
+MSLN_df$U133_Microarray_Expn <- round(MSLN_df$U133_Microarray_Expn, digits = 4)
+```
+
+```{r}
+head(MSLN_df)
+```
+
+```{r}
+sapply(MSLN_df, class)
+```
+
+
+```{r}
+ggplot(data = MSLN_df, aes(x=reorder(Patient_ID,U133_Microarray_Expn), y=U133_Microarray_Expn)) +
+  geom_bar(stat ="identity", color = "black", fill="blue") + 
+  theme(plot.title = element_text(hjust = 0.5, size = 18), 
+        panel.background = element_rect(fill="white"), 
+        panel.grid.major = element_line(colour = "gray"), 
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 45,hjust = 1, vjust = 0.5, size = 3), 
+        axis.text.y = element_text(size = 14),
+        axis.title = element_text(size = 15)) + 
+  labs(y="Log2 GE", x="Patient", title="Mesothelin Expression in GSE12417 CN-AML Cohort 2")
+
+```
+
+
+```{r}
+# save(GPL570, file = "GSE12417_CN-AML_GPL570_withGenSymbol_ExpnData.RData")
+# write.csv(GPL570, file = "GSE12417_CN-AML_GPL570_withGenSymbol_ExpnData.csv" )
+```
+
+```{r}
+# write.csv(MSLN_df, "GSE12417_CN-AML_U133Plus2.0_MSLN_ExpnData.csv")
+```
+
+
+
+#TCGA MSLN 
+
+

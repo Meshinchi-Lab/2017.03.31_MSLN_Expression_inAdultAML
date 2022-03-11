@@ -1,0 +1,125 @@
+---
+title: "MSLN Expression in Adult AML"
+author: "Jenny Smith"
+date: "March 31, 2017"
+output: pdf_document
+---
+
+
+```{r setup}
+library(knitr)
+knitr::opts_chunk$set(tidy.opts=list(width.cutoff=50),tidy=TRUE, fig.align='center')
+knitr::opts_knit$set(root.dir = 'H:/RNA_seq_Analysis/2017.03.31_MSLN_Expression_inAdultAML/')
+```
+
+
+```{r message = FALSE, warning=FALSE}
+library(RColorBrewer)
+library(colorspace)
+library(stringr)
+library(Biobase)
+library(GEOquery)
+library(dplyr)
+library(magrittr)
+library(ggplot2)
+getwd()
+```
+
+#Waterfall plot function
+```{r}
+source("H:/scripts/RNAseq_Analysis/MSLN_waterfallplots/Waterfall_Barplot_Function.r")
+```
+
+
+#GSE12417 CN-AML Cohort
+```{r}
+GSE12417 <- get(load("GSE12417_CN-AML_U133Combined_withGeneSymbol_ExpnData.RData"))
+```
+
+```{r}
+dim(GSE12417)
+```
+
+
+```{r}
+head(GSE12417[,1:5])
+```
+
+
+```{r}
+sapply(GSE12417[,1:10], class)
+```
+
+```{r}
+#Note: any non-numeric values must be of character class for waterfallPlot() function to work. 
+GSE12417$probe_ID <- as.character(GSE12417$probe_ID)
+```
+
+```{r}
+MSLN_cohort1 <- waterfallPlot(GSE12417, "MSLN", "Gene_Symbol", c("patient", "Log2_Expn"), "blue")
+```
+
+```{r}
+head(MSLN_cohort1[[1]])
+```
+
+```{r}
+MSLN_cohort1[[2]]$labels$title <- "Mesothelin Expression in GSE12417 CN-AML Cohort 1"
+
+MSLN_cohort1[[2]]  <- MSLN_cohort1[[2]] + scale_y_continuous(limits = c(0,12))
+
+MSLN_cohort1[[2]]
+```
+
+
+
+#GSE12417 Second Cohort
+
+```{r}
+GPL570 <- get(load("GSE12417_CN-AML_GPL570_withGenSymbol_ExpnData.RData"))
+```
+
+```{r}
+dim(GPL570)
+```
+
+```{r}
+sapply(GPL570[,1:10], class)
+```
+
+```{r}
+#Note: any non-numeric values must be of character class for waterfallPlot() function to work. 
+GPL570$Row.names <- as.character(GPL570$Row.names)
+```
+
+```{r}
+head(GPL570[,1:5])
+```
+
+```{r}
+MSLN_cohort2 <- waterfallPlot(GPL570, "MSLN", "Gene.Symbol", c("Patient", "Log2_Expn"), "darkgreen")
+```
+
+```{r}
+head(MSLN_cohort2[[1]])
+```
+
+```{r}
+MSLN_cohort2[[2]]$labels$title <- "Mesothelin Expression in GSE12417 CN-AML Cohort 2"
+
+MSLN_cohort2[[2]] <- MSLN_cohort2[[2]] + scale_y_continuous(limits = c(0,12))
+
+MSLN_cohort2[[2]]
+```
+
+###Save the files as pdfs
+```{r}
+# pdf(file = "GSE12417_CN-AML_MSLN_waterfallplot.pdf", height = 5, width = 6)
+# MSLN_cohort1[[2]]
+# MSLN_cohort2[[2]]
+# dev.off()
+```
+
+
+
+
